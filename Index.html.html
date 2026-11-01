@@ -1,0 +1,564 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Smart Load Prioritization Microgrid</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root{--bg:#06121d;--panel:#0a1f31;--panel2:#0d2a40;--line:#17415f;--txt:#e6f0f6;--mut:#8fa9b8;--cyan:#27b4d6;--green:#3ddc84;--orange:#f59e42;--red:#ef5350;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font:15px/1.45 'Segoe UI',system-ui,sans-serif;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+header h1{font-size:1.15rem}header small{color:var(--mut)}
+.live{color:var(--green);font-weight:600}
+.live:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.tabs{display:flex;gap:4px;padding:8px 0 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{font:inherit;color:var(--mut);background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;padding:8px 18px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected=true]{color:#fff;background:var(--panel2);border-color:var(--cyan)}
+main{padding:14px 0 28px}
+.dash{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.card h2{font-size:1.05rem;font-weight:600;margin-bottom:8px}
+.card h2 small{color:var(--mut);font-weight:400;font-size:.8rem}
+.kpis{grid-column:span 4;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi>span{color:var(--mut);font-size:.82rem}
+.kpi b{display:block;font-size:1.6rem;margin:2px 0 8px}
+.kpi b i{font-size:.9rem;font-style:normal;color:var(--mut);font-weight:400}
+.kpi em{display:block;font-style:normal;font-size:.76rem;background:#bfeaf5;color:#073146;border-radius:4px;padding:3px 6px}
+.pie{grid-column:span 3}.flow{grid-column:span 5;grid-row:span 2}.plan{grid-column:span 7}.rt{grid-column:1/-1}.b1,.b2{grid-column:span 6}
+.box{position:relative;height:250px}
+.meta{font-size:.8rem;color:var(--mut);margin-bottom:6px}.meta b{color:var(--txt)}
+svg{width:100%;height:auto;display:block}
+.w{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.base{stroke:#16384f}
+.ac{stroke:#e8f1f7;stroke-dasharray:2 12;animation:f 1s linear infinite}
+.dc{stroke:var(--green);stroke-dasharray:2 12;animation:f 1s linear infinite}
+@keyframes f{to{stroke-dashoffset:-14}}
+.lbl{fill:var(--mut);font-size:10.5px;text-anchor:middle}
+.lbl.v{fill:var(--txt);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.8rem;color:var(--mut);margin-top:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.pill,select,input{font:inherit;font-size:.85rem;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+.pill{cursor:pointer;margin:0 6px 6px 0}.pill:hover{border-color:var(--cyan)}
+.sup input:disabled{opacity:.5;cursor:not-allowed}
+.sup{display:flex;flex-wrap:wrap;gap:8px 14px;margin:6px 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:8px}
+.sup label{font-size:.8rem;color:var(--mut);display:flex;flex-direction:column;gap:3px}.sup input{width:92px}
+.tbl{width:100%;border-collapse:collapse}.tbl th,.tbl td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);font-size:.88rem}.tbl th{color:var(--cyan);font-weight:600}
+.tbl input{width:76px;text-align:right}
+.badge{padding:3px 10px;border-radius:99px;font-weight:600;font-size:.78rem;white-space:nowrap}
+.good{background:#0d3a22;color:var(--green)}.warn{background:#4a3410;color:var(--orange)}.bad{background:#4a1515;color:#ff9a98}
+.cmp{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:.88rem}
+.cmp div{background:var(--panel2);border-radius:8px;padding:10px 12px;border:1px solid transparent}.cmp div.on{border-color:var(--cyan)}
+.cmp b{font-size:1.1rem}
+.hide{display:none}.ok{color:var(--green)}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
+.tiers>div{background:var(--panel2);border-radius:8px;padding:14px;border:1px solid var(--line);font-size:.88rem;min-width:0}
+.tiers>div.on{border-color:var(--cyan)}
+.tiers h3{font-size:1.02rem;margin-bottom:6px}
+.tiers p{margin:0 0 8px;color:var(--mut)}.tiers p b{color:var(--txt)}
+.rk{display:inline-block;margin-bottom:8px;padding:2px 10px;border-radius:99px;font-size:.76rem;font-weight:600;background:#0b3a52;color:#bfeaf5}
+.rsn{padding-left:18px;font-size:.9rem}.rsn li{margin-bottom:6px}
+details{border-bottom:1px solid var(--line);padding:10px 0}details:last-child{border-bottom:0}
+summary{cursor:pointer;font-weight:600;font-size:.95rem}
+details p{margin-top:6px;color:var(--mut);font-size:.9rem;max-width:80ch}
+@media(max-width:1000px){.tiers{grid-template-columns:1fr}}
+.alert{padding:10px 14px;border-radius:10px;border:1px solid;font-size:.92rem}
+.alert.ok{background:#0d3a22;border-color:#1b6b3f;color:#b8f5d0}.alert.warn{background:#4a3410;border-color:#8a6420;color:#ffd9a0}.alert.bad{background:#4a1515;border-color:#8a2b2b;color:#ffc4c2}
+.why ol{padding-left:18px}.why li{margin-bottom:8px;font-size:.9rem}
+.eff{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--panel2);font-size:.88rem}
+.tbl input[type=checkbox]{width:auto}.ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.8rem}.ctl label{display:flex;gap:4px;align-items:center;white-space:nowrap}.ctl select{padding:3px 4px}
+tr.sel td{background:#0d2a40}
+@media(max-width:1000px){.kpis,.pie,.flow,.plan,.rt,.b1,.b2{grid-column:1/-1;grid-row:auto}.cmp{grid-template-columns:1fr}.plan{overflow-x:auto}}
+.ftx{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:.84rem;line-height:1.55;color:var(--mut)}.ftx b{color:var(--txt)}.ftx p{margin:0 0 7px}.ftx .path{background:var(--panel2);border-radius:6px;padding:7px 10px;color:#bfeaf5}
+.ins{grid-column:1/-1}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:6px}.tiles>div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}.tiles span{display:block;color:var(--mut);font-size:.78rem}.tiles b{display:block;font-size:1.35rem;margin:3px 0}.tiles em{display:block;font-style:normal;font-size:.74rem;color:var(--mut)}
+.rel{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;margin-top:6px}.gauge{flex:0 0 140px;text-align:center}.gauge b{display:block;font-size:1rem;margin-top:2px}
+.relr{flex:1 1 320px;min-width:0}.mix{display:flex;height:16px;border-radius:8px;overflow:hidden;background:#17415f;margin:6px 0}.mix i{display:block;height:100%;transition:width .6s}
+.mixl{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--mut);margin-bottom:10px}.mixl i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.chk{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px}.chk div{display:flex;gap:9px;align-items:flex-start;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:.84rem}
+.chk .ic{flex:0 0 22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.8rem}.chk .p .ic{background:#0d3a22;color:var(--green)}.chk .f .ic{background:#4a1515;color:#ff9a98}.chk small{display:block;color:var(--mut)}
+.safe{margin:12px 0 0;padding:10px 12px;border:1px dashed var(--line);border-radius:8px;font-size:.82rem;color:var(--mut)}.safe b{color:var(--txt)}
+.sb{height:6px;background:#17415f;border-radius:4px;margin-top:4px;min-width:50px;overflow:hidden}.sb i{display:block;height:100%;transition:width .5s}
+.chip{display:inline-block;padding:2px 10px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);font-size:.78rem;margin-left:8px}
+header{background:linear-gradient(90deg,rgba(39,180,214,.12),transparent 60%);padding-left:10px;padding-right:10px;border-radius:10px 10px 0 0}
+header h1{background:linear-gradient(90deg,#7fe3ff,#3ddc84);-webkit-background-clip:text;background-clip:text;color:transparent}
+.card,.kpi{transition:border-color .25s,box-shadow .25s,transform .25s}.card:hover,.kpi:hover{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(39,180,214,.25),0 8px 24px rgba(0,0,0,.35)}.kpi:hover{transform:translateY(-2px)}
+@keyframes alertpulse{0%,100%{box-shadow:0 0 0 0 rgba(239,83,80,.45)}50%{box-shadow:0 0 0 6px rgba(239,83,80,0)}}.alert.bad{animation:alertpulse 2s infinite}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.card,.kpi{animation:rise .5s ease both}
+h3.sub{font-size:.9rem;margin:16px 0 8px;color:var(--cyan)}.simbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin:8px 0}.simbar label{font-size:.82rem;color:var(--mut)}
+.srcgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}.src{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px}.src span{display:block;color:var(--mut);font-size:.82rem}.src b{display:block;font-size:1.5rem;margin:2px 0 4px}.src em{display:block;font-style:normal;font-size:.76rem;color:var(--mut);margin-top:4px;line-height:1.4}.src em.st{color:var(--txt)}.sb.big{height:9px}
+@media(prefers-reduced-motion:reduce){.alert.bad,.card,.kpi{animation:none}.card:hover,.kpi:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.ac,.dc,.live:before{animation:none}}
+</style>
+<header>
+  <div><h1>Smart Load Prioritization Microgrid</h1><small>When supply is short, who gets electricity first? · sample data</small></div>
+  <div><span class="live">Live</span> <small id="clock"></small><span class="chip" id="dn"></span></div>
+</header>
+<div class="tabs" role="tablist" aria-label="Sections"></div>
+
+<main>
+<div id="p-system" class="dash" role="tabpanel">
+  <div id="alert" class="alert" style="grid-column:1/-1" role="status"></div>
+  <div class="kpis">
+    <div class="kpi"><span>⚡ Energy demand now</span><b><span id="kreq">0</span> <i>kW</i></b><em id="kcons">5 consumers</em></div>
+    <div class="kpi"><span>☀ Supply available now</span><b><span id="kav">0</span> <i>kW</i></b><em id="kbal">–</em></div>
+    <div class="kpi"><span>✅ Delivered to consumers</span><b><span id="kdel">0</span> <i>kW</i></b><em id="kpct">–</em></div>
+    <div class="kpi"><span>⚠ Unserved demand</span><b><span id="kun">0</span> <i>kW</i></b><em id="kes">–</em></div>
+  </div>
+
+  <div class="card pie"><h2>Who receives power <small>(kW now)</small></h2><div class="box"><canvas id="pie" role="img" aria-label="Doughnut chart of power delivered to each consumer and unserved demand"></canvas></div></div>
+
+  <div class="card flow">
+    <div class="meta">Last update: <b id="upd"></b><br>Strategy: <b id="smode"></b></div>
+    <svg viewBox="0 0 560 530" role="img" aria-label="Flow diagram: solar, battery, grid and generator feed an AC bus that supplies a hospital, large scale industry, small scale industry, water pump and houses through breakers that open when supply is short">
+      <defs><g id="cab"><rect width="36" height="56" rx="3" fill="#d5dfe6" stroke="#7a90a0"/><rect x="5" y="6" width="12" height="44" fill="#b4c3ce"/><rect x="19" y="6" width="12" height="44" fill="#b4c3ce"/><circle cx="18" cy="12" r="2" fill="#3d6b85"/></g></defs>
+      <g class="w base">
+        <path d="M455,70H408"/><path d="M390,96V170"/><path d="M372,198H306"/><path d="M270,198H206"/><path d="M170,198H130"/>
+        <path d="M130,64V462"/><path d="M130,64H98"/><path d="M130,160H98"/><path d="M130,262H98"/><path d="M130,362H98"/><path d="M130,462H98"/>
+        <path d="M180,320V226"/><path d="M320,320V256H196V226"/><path d="M390,226V340H420"/>
+      </g>
+      <g class="w">
+        <path id="wSol" class="dc" d="M455,70H408"/><path id="wD1" class="dc" d="M390,96V170"/><path id="wD2" class="dc" d="M372,198H306"/>
+        <path id="wA1" class="ac" d="M270,198H206"/><path id="wA2" class="ac" d="M170,198H130"/>
+        <path id="wBU" class="ac" d="M130,198V64"/><path id="wBD" class="ac" d="M130,198V462"/>
+        <path id="wL0" class="ac" d="M130,64H98"/><path id="wL1" class="ac" d="M130,160H98"/><path id="wL2" class="ac" d="M130,262H98"/><path id="wL3" class="ac" d="M130,362H98"/><path id="wL4" class="ac" d="M130,462H98"/>
+        <path id="wGr" class="ac" d="M180,320V226"/><path id="wGe" class="ac" d="M320,320V256H196V226"/><path id="wBt" class="dc" d="M390,226V340H420"/>
+      </g>
+      <g fill="#fff" stroke="#16384f" stroke-width="2"><circle cx="130" cy="198" r="5"/><circle cx="390" cy="198" r="5"/></g>
+      <g stroke="#06121d" stroke-width="2"><circle id="br0" cx="114" cy="64" r="6"/><circle id="br1" cx="114" cy="160" r="6"/><circle id="br2" cx="114" cy="262" r="6"/><circle id="br3" cx="114" cy="362" r="6"/><circle id="br4" cx="114" cy="462" r="6"/></g>
+
+      <g transform="translate(12,20) scale(.62)">
+        <polygon points="0,66 50,40 110,66 60,92" fill="#9fd0e6" stroke="#0c3b55"/><polygon points="0,66 60,92 60,118 0,92" fill="#e8f2f7" stroke="#0c3b55"/>
+        <polygon points="60,92 110,66 110,92 60,118" fill="#c9dfeb" stroke="#0c3b55"/>
+        <g fill="#6fb7d8"><rect x="8" y="80" width="10" height="9"/><rect x="26" y="87" width="10" height="9"/><rect x="74" y="88" width="10" height="9"/><rect x="92" y="80" width="10" height="9"/></g>
+        <circle cx="60" cy="104" r="9" fill="#1f8a70"/><path d="M60 99v10M55 104h10" stroke="#fff" stroke-width="3"/></g>
+      <g transform="translate(12,128)"><rect x="0" y="26" width="70" height="36" fill="#c9dfeb" stroke="#0c3b55"/><polygon points="0,26 14,10 14,26 30,10 30,26 46,10 46,26" fill="#8fb4c9" stroke="#0c3b55"/>
+        <rect x="56" y="0" width="10" height="26" fill="#9aa8b3" stroke="#0c3b55"/><g fill="#6fb7d8"><rect x="8" y="36" width="12" height="9"/><rect x="28" y="36" width="12" height="9"/><rect x="48" y="44" width="14" height="18"/></g></g>
+      <g transform="translate(12,236)"><rect x="6" y="28" width="56" height="30" fill="#f3e3a6" stroke="#0c3b55"/><polygon points="6,28 20,14 20,28 34,14 34,28" fill="#c9b25a" stroke="#0c3b55"/><rect x="46" y="6" width="8" height="22" fill="#9aa8b3" stroke="#0c3b55"/><g fill="#6fb7d8"><rect x="12" y="36" width="10" height="8"/><rect x="28" y="36" width="10" height="8"/></g><rect x="44" y="42" width="12" height="16" fill="#8a6a3f"/></g>
+      <g transform="translate(12,330)"><circle cx="28" cy="34" r="18" fill="#27b4d6" stroke="#0c3b55"/><rect x="44" y="24" width="24" height="20" rx="3" fill="#8fb4c9" stroke="#0c3b55"/>
+        <rect x="0" y="52" width="70" height="8" fill="#9aa8b3" stroke="#0c3b55"/><path d="M28 6c6 9 9 13 0 18-9-5-6-9 0-18z" fill="#7fd6ee"/></g>
+      <g transform="translate(12,432)"><rect x="8" y="26" width="54" height="34" fill="#e8f2f7" stroke="#0c3b55"/><polygon points="0,28 35,4 70,28" fill="#c0643f" stroke="#0c3b55"/>
+        <rect x="30" y="38" width="12" height="22" fill="#8a6a3f"/><rect x="14" y="34" width="12" height="10" fill="#6fb7d8"/><rect x="46" y="34" width="12" height="10" fill="#6fb7d8"/></g>
+      <text class="lbl" id="lN0" x="52" y="104"></text><text class="lbl v" id="lV0" x="52" y="116"></text>
+      <text class="lbl" id="lN1" x="52" y="202"></text><text class="lbl v" id="lV1" x="52" y="214"></text>
+      <text class="lbl" id="lN2" x="52" y="304"></text><text class="lbl v" id="lV2" x="52" y="316"></text>
+      <text class="lbl" id="lN3" x="52" y="406"></text><text class="lbl v" id="lV3" x="52" y="418"></text>
+      <text class="lbl" id="lN4" x="52" y="508"></text><text class="lbl v" id="lV4" x="52" y="520"></text>
+
+      <g transform="translate(455,26)"><polygon points="0,40 60,28 76,60 16,74" fill="#1d4f91" stroke="#9fc5ee" stroke-width="1.5"/><path d="M20,36L36,66M40,32L56,63M8,57L68,45" stroke="#9fc5ee"/></g>
+      <text class="lbl" x="500" y="116">Solar</text>
+      <use href="#cab" x="372" y="40"/><text class="lbl" x="330" y="34">DC/DC converter</text>
+      <use href="#cab" x="170" y="170"/><text class="lbl" x="188" y="162">AC combiner</text>
+      <use href="#cab" x="270" y="170"/><text class="lbl" x="296" y="162">Storage inverter</text>
+      <use href="#cab" x="372" y="170"/><text class="lbl" x="450" y="203">DC combiner</text>
+      <g transform="translate(420,310)"><rect width="120" height="62" rx="4" fill="#d5dfe6" stroke="#7a90a0"/><g fill="#b4c3ce"><rect x="6" y="6" width="24" height="50"/><rect x="34" y="6" width="24" height="50"/><rect x="62" y="6" width="24" height="50"/><rect x="90" y="6" width="24" height="50"/></g></g>
+      <g transform="translate(430,380)"><rect width="100" height="30" rx="6" fill="#0d3a22" stroke="#3ddc84" stroke-width="2.5"/><rect x="100" y="9" width="6" height="12" rx="2" fill="#3ddc84"/><text id="soc" x="50" y="21" text-anchor="middle" fill="#c9ffe0" font-size="16" font-weight="700">100%</text></g>
+      <text class="lbl" x="480" y="424">Battery</text>
+      <g transform="translate(150,322)" stroke="#9fb4c2" fill="none" stroke-width="2"><path d="M4,50L16,0L28,50M9,28H23M0,14H32M4,50H28"/><rect x="38" y="26" width="26" height="24" fill="#2b4a5f"/></g>
+      <text class="lbl" x="180" y="386">Utility grid</text>
+      <g transform="translate(290,322)"><rect width="60" height="40" rx="4" fill="#d5dfe6" stroke="#7a90a0"/><circle cx="20" cy="20" r="11" fill="#b4c3ce" stroke="#7a90a0"/><path d="M42 10l-6 12h8l-6 12" stroke="#f59e42" stroke-width="2.5" fill="none"/></g>
+      <text class="lbl" x="320" y="386">Generator</text>
+    </svg>
+    <div class="legend"><span><i style="background:var(--green)"></i>Fully served</span><span><i style="background:var(--orange)"></i>Reduced</span><span><i style="background:var(--red)"></i>Shed (breaker open)</span></div>
+    <div class="ftx"><p class="path"><b>How to read the diagram:</b> Solar → DC/DC converter → DC combiner → storage inverter → AC combiner → <b>AC bus</b> → breakers → consumers. The utility grid and generator join at the AC combiner. The battery charges and discharges through the DC combiner. Moving dots show power flowing; brighter and faster dots mean more power.</p><div id="flowtxt"></div></div>
+  </div>
+
+  <div class="card plan">
+    <h2>Load-shedding planner <small>supply is shared by priority, then edit anything</small></h2>
+    <div id="scn"></div>
+    <div class="sup" id="sup"></div>
+    <table class="tbl"><thead><tr><th>Consumer</th><th>Priority</th><th>Demand kW</th><th>Essential kW</th><th>Emergency control</th><th>Gets kW</th><th>Served</th><th>Status</th></tr></thead><tbody id="ct"></tbody></table>
+    <div class="sup" style="margin:12px 0 0;align-items:center"><label for="strat">Sharing rule</label><select id="strat"><option value="priority">Priority first (smart)</option><option value="equal">Equal cuts for everyone (no priority)</option><option value="ren">Renewables only (priority)</option></select></div>
+    <div class="eff" id="eff"></div>
+  </div>
+
+  <div class="card rt"><h2>Microgrid real-time data</h2><div class="box"><canvas id="rt" role="img" aria-label="Live line chart of demand, supply, delivered and unserved power and battery charge"></canvas></div></div>
+
+  <div class="card ins" id="srcs"><h2>Energy sources, storage and runtime <small>(how much energy each source has left, and how long it will run)</small></h2>
+    <div class="simbar"><button class="pill" id="sim_play">▶ Play day</button><button class="pill" id="sim_live">Back to live clock</button><button class="pill" id="refuel">⛽ Refuel generator</button>
+      <label>Speed <select id="sim_spd"><option value="0.5">Slow (30 min per step)</option><option value="1" selected>Normal (1 h per step)</option><option value="3">Fast (3 h per step)</option></select></label>
+      <label style="flex:1 1 220px">Time of day <input type="range" id="sim_t" min="0" max="23.75" step="0.25" value="12" style="vertical-align:middle;width:55%"> <b id="sim_tl"></b></label></div>
+    <p class="meta" id="sim_note" style="margin:4px 0 0"></p>
+    <div class="srcgrid" id="srcgrid"></div>
+    <div style="position:relative;height:230px"><canvas id="dayc" aria-label="Solar output and demand over 24 hours"></canvas></div>
+    <h3 class="sub">Safe limits</h3><div class="chk" id="lim"></div>
+    <h3 class="sub">How long will it run without the grid?</h3>
+    <table class="tbl"><thead><tr><th>Case</th><th>Power needed</th><th>Energy per day</th><th>Solar gives per day</th><th>Stored energy (battery + fuel)</th><th>Runs for</th></tr></thead><tbody id="aut"></tbody></table>
+    <p class="meta" id="aut_note" style="margin:10px 0 0"></p></div>
+
+  <div class="card ins"><h2>Reliability score <small>(live health check of this microgrid · 100 = fully dependable)</small></h2>
+    <div class="rel">
+      <div class="gauge"><svg viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Reliability score gauge"><circle cx="60" cy="60" r="52" fill="none" stroke="#17415f" stroke-width="10"/><circle id="g_arc" cx="60" cy="60" r="52" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s,stroke .4s"/><text id="g_txt" x="60" y="66" text-anchor="middle" font-size="30" font-weight="700" fill="#e6f0f6">0</text><text x="60" y="84" text-anchor="middle" font-size="9" fill="#8fa9b8">out of 100</text></svg><b id="g_lbl">–</b></div>
+      <div class="relr"><div style="font-size:.82rem;color:var(--mut)">Where the delivered power comes from right now</div><div class="mix" id="mix"></div><div class="mixl" id="mixl"></div><div class="chk" id="chk"></div></div>
+    </div>
+    <p class="meta" id="r_note" style="margin:10px 0 0"></p>
+    <div class="safe"><b>Built-in safeguards:</b> essential loads are protected first · battery is locked at a 20% reserve and never charges above 100% · the generator runs at most 80% of its rating and stops at a 15% fuel reserve · solar is 0 at night · the highest priorities are cut last · any consumer can be marked Critical or shed by hand · the Fail-safe test button shows what happens if control communication is lost (only priority 1 stays on).</div>
+  </div>
+
+  <div class="card ins"><h2>Resilience, cost and carbon <small>(per hour at the current settings · sample factors: grid 0.82 kg CO₂/kWh, generator 0.70 kg CO₂/kWh)</small></h2>
+    <div class="tiles">
+      <div><span>Battery energy usable</span><b id="i_kwh">–</b><em>above the 20% reserve</em></div>
+      <div><span>Battery backup time</span><b id="i_bk">–</b><em id="i_bk2">–</em></div>
+      <div><span>Solar + battery share</span><b id="i_ren">–</b><em>of delivered power</em></div>
+      <div><span>CO₂ emitted</span><b id="i_co2">–</b><em>grid and generator</em></div>
+      <div><span>CO₂ avoided by solar</span><b id="i_av">–</b><em>compared with grid power</em></div>
+      <div><span>Energy cost</span><b id="i_cost">–</b><em>battery, grid and generator</em></div>
+      <div><span>Harm avoided by priority</span><b id="i_sav">–</b><em>vs equal cuts, per hour</em></div>
+    </div>
+    <p class="meta" id="i_note" style="margin:10px 0 0"></p></div>
+
+  <div class="card b1 why"><h2>Why this decision? <small>(plain-language explanation)</small></h2><div id="why"></div></div>
+
+  <div class="card b2"><h2>Strategy comparison <small>(cost and renewable use)</small></h2><div style="overflow-x:auto"><table class="tbl" id="cost"></table></div>
+    <p class="meta" style="margin-top:8px">Energy price per kWh: battery $0.04, grid $0.12, generator $0.35, solar $0. Harm = unserved kWh × value of lost load (super-speciality hospital $10, multi-speciality hospital $6, normal clinic $3, pump $4, homes $2, large scale industry $1, small scale industry $2). Lowest cost + harm is starred.</p></div>
+
+  <div class="card b1"><h2>Demand vs delivered <small>(by consumer)</small></h2><div class="box"><canvas id="bar" role="img" aria-label="Bar chart of demand, essential minimum and delivered power for each consumer"></canvas></div></div>
+
+  <div class="card b2"><h2>Shortage forecast <small>(next 6 hours, simulated)</small></h2><div class="box"><canvas id="fc" role="img" aria-label="Forecast of demand, supply and shortage for the next six hours"></canvas></div></div>
+</div>
+
+<div id="p-fac" class="card hide" role="tabpanel"><h2>Which health facility gets power first? <small>(three tiers, highest priority first)</small></h2>
+<p class="meta">Inside the health sector, not every building carries the same risk when power drops. Pick a tier to load it into the planner and see what happens in a shortage.</p>
+<div class="tiers">
+<div class="on" data-fc="super"><span class="rk">Priority 1 · served first</span><h3>Super-speciality hospital</h3>
+<p><b>Examples:</b> heart, brain and transplant units, ICU and NICU, ventilators, operation theatres, dialysis, MRI and CT, blood bank.</p>
+<p><b>Essential minimum:</b> 88% of demand (200 of 226 kW)</p><p><b>Harm value:</b> $10 per unserved kWh</p>
+<p><b>Why this rank:</b> patients depend on machines that keep them alive, harm can start within minutes, and these patients cannot be moved quickly.</p>
+<button class="pill" data-fcb="super">Load and show result</button></div>
+<div data-fc="multi"><span class="rk">Priority 2 · served second</span><h3>Multi-speciality hospital</h3>
+<p><b>Examples:</b> emergency room, general wards, labs, X-ray, common surgeries, smaller ICU, pharmacy cold storage.</p>
+<p><b>Essential minimum:</b> 60% of demand (90 of 150 kW)</p><p><b>Harm value:</b> $6 per unserved kWh</p>
+<p><b>Why this rank:</b> it also treats emergencies, but with fewer life-support machines, and the most critical cases can be transferred to a super-speciality hospital.</p>
+<button class="pill" data-fcb="multi">Load and show result</button></div>
+<div data-fc="clinic"><span class="rk">Priority 3 · same tier as homes</span><h3>Normal clinic</h3>
+<p><b>Examples:</b> outpatient consultation, lights and fans, basic tests, computers, vaccine fridge.</p>
+<p><b>Essential minimum:</b> 28% of demand (25 of 90 kW)</p><p><b>Harm value:</b> $3 per unserved kWh</p>
+<p><b>Why this rank:</b> visits can be rescheduled and patients can go to a nearby hospital. The vaccine fridge still needs steady power, so a small essential minimum keeps it on.</p>
+<button class="pill" data-fcb="clinic">Load and show result</button></div>
+</div>
+<h2 style="margin-top:14px">Reasons for choosing this order</h2>
+<ol class="rsn">
+<li><b>Time to harm.</b> Loss of life support hurts within minutes. A vaccine fridge can last hours. A routine check-up can wait days.</li>
+<li><b>Can the patient go elsewhere?</b> Clinic patients can. ICU patients cannot be moved quickly, so the facility that treats them is protected first.</li>
+<li><b>Share of life-support equipment.</b> The more of a facility's load is life support, the larger its essential minimum.</li>
+<li><b>Medical risk, not size.</b> The rank follows risk to patients, not the size of the building or its electricity bill.</li>
+</ol>
+<p class="meta" style="margin-top:10px">These are example settings for the demo. A real deployment would use values agreed with hospital engineers and the utility. Every number can be edited in the planner on the System tab.</p></div>
+
+<div id="p-other" class="card hide" role="tabpanel"><h2 id="ot"></h2><div style="overflow-x:auto"><table class="tbl" id="tb"></table></div><div id="ex" style="margin-top:14px"></div></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),r0=Math.round,sum=a=>a.reduce((s,v)=>s+v,0);
+Chart.defaults.color='#8fa9b8';Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";Chart.defaults.maintainAspectRatio=false;
+const GRID={color:'rgba(255,255,255,.07)'};
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+
+/* ===== EDIT DEFAULTS HERE ===== */
+// d = demand kW, m = essential minimum kW, p = priority (1 = served first), v = harm in $ per unserved kWh
+const BASE=[{k:'hosp',n:'Super-speciality hospital',s:'Super hospital',d:226,m:200,p:1,v:10,c:'#ef5350'},{k:'large',n:'Large scale industry',s:'Large industry',d:180,m:0,p:4,v:1,c:'#f59e42'},{k:'small',n:'Small scale industry',s:'Small industry',d:60,m:0,p:3,v:2,c:'#e8c547'},{k:'pump',n:'Water pump',d:45,m:30,p:2,v:4,c:'#27b4d6'},{k:'home',n:'Residential houses',d:80,m:40,p:3,v:2,c:'#a78bfa'}];
+const SUP={solar:0,peak:700,batt:200,soc:60,cap:1000,grid:200,gen:150,fuel:400,tank:400};
+const SUPN=[['solar','Solar now (kW)'],['peak','Solar rating (kW)'],['batt','Battery power (kW)'],['soc','Battery charge (%)'],['cap','Battery size (kWh)'],['grid','Grid limit (kW)'],['gen','Generator (kW)'],['fuel','Fuel in tank (L)'],['tank','Fuel tank size (L)']];
+const PRICE={bat:.04,grid:.12,gen:.35}; // $ per kWh
+const SCN={'Grid outage':{s:{grid:0}}};
+const MODES={priority:'Priority first (smart)',equal:'Equal cuts (no priority)',ren:'Renewables only (priority)'};
+const fresh=(mu=1)=>BASE.map(c=>({...c,d:r0(c.d*mu),m:r0(c.m*mu),crit:false,red:0,shed:false}));
+let SOLARDAY=SUP.solar;const isNight=h=>h>=18||h<6; // solar is off from 18:00 to 05:59
+/* time: live clock, or a simulated day (SIMT = hours since the simulation started) */
+let SIMT=null,SIMON=false,SPEED=1,fuel=SUP.fuel;
+const curF=()=>{if(SIMT!=null)return SIMT%24;const d=new Date();return d.getHours()+d.getMinutes()/60},curHr=()=>Math.floor(curF());
+const hm=t=>String(Math.floor(t)).padStart(2,'0')+':'+String(Math.floor((t%1)*60)).padStart(2,'0');
+/* safe limits and constants */
+const FRES=.15,GLOAD=.8,KWHL=3.5,SOLH=24/Math.PI; // generator fuel reserve 15%, max generator load 80%, kWh per litre of diesel
+const capf=()=>Math.max(1,S.cap||1),solNow=()=>S.peak>0?r0(S.peak*sunf(curF())):0,GENEFF=sv=>fuel>FRES*sv.tank?sv.gen*GLOAD:0,DF=()=>SIMT==null?1:prof(curF());
+let FS=false,C=fresh(),S={...SUP},soc=S.soc,strat='priority',E=[],A=[],D={},ALL={},BL={},FC=[],prev=[],LOG=[];
+
+/* ---- inputs ---- */
+$('#sup').innerHTML=SUPN.map(([k,n])=>`<label>${n}<input id="s_${k}" type="number" min="0"${k=='soc'?' max="100"':''} step="1" value="${S[k]}"></label>`).join('');
+$('#ct').innerHTML=C.map((c,i)=>`<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${c.c};margin-right:6px"></i><span id="nm_${i}">${c.n}</span></td>
+ <td><select id="p_${i}">${[1,2,3,4].map(p=>`<option ${p==c.p?'selected':''}>${p}</option>`).join('')}</select></td>
+ <td><input id="d_${i}" type="number" min="0" value="${c.d}"></td><td><input id="m_${i}" type="number" min="0" value="${c.m}"></td>
+ <td><div class="ctl"><label><input type="checkbox" id="cr_${i}"> Critical</label><select id="rd_${i}" aria-label="Reduce demand"><option value="0">Cut 0%</option><option value="25">Cut 25%</option><option value="50">Cut 50%</option></select><label><input type="checkbox" id="sh_${i}"> Shed</label></div></td>
+ <td id="a_${i}"></td><td id="v_${i}"></td><td id="t_${i}"></td></tr>`).join('');
+$('#scn').innerHTML=Object.keys(SCN).map(n=>`<button class="pill" data-s="${n}">${n}</button>`).join('')+'<button class="pill" id="rst">Reset all</button><button class="pill" id="fs" title="Simulates losing control communication: only priority 1 consumers stay on">Fail-safe test</button>';
+function readInputs(){
+  SUPN.forEach(([k])=>S[k]=Math.max(0,parseFloat($('#s_'+k).value)||0));S.solar=solNow();S.soc=clamp(S.soc,0,100);S.tank=Math.max(1,S.tank);S.fuel=clamp(S.fuel,0,S.tank);if(parseFloat($('#s_soc').value)>100)$('#s_soc').value=100;if(parseFloat($('#s_fuel').value)>S.tank)$('#s_fuel').value=S.tank;
+  C.forEach((c,i)=>{c.p=+$('#p_'+i).value;c.d=Math.max(0,parseFloat($('#d_'+i).value)||0);c.m=Math.min(c.d,Math.max(0,parseFloat($('#m_'+i).value)||0));
+    c.crit=$('#cr_'+i).checked;c.red=+$('#rd_'+i).value;$('#sh_'+i).disabled=c.crit;if(c.crit)$('#sh_'+i).checked=false;c.shed=$('#sh_'+i).checked});
+  strat=$('#strat').value;
+}
+function writeInputs(){S.solar=solNow();SUPN.forEach(([k])=>$('#s_'+k).value=S[k]);C.forEach((c,i)=>{$('#p_'+i).value=c.p;$('#d_'+i).value=c.d;$('#m_'+i).value=c.m;$('#cr_'+i).checked=c.crit;$('#rd_'+i).value=c.red;$('#sh_'+i).checked=c.shed;$('#sh_'+i).disabled=c.crit});$('#strat').value=strat}
+$$('.sup input,.tbl input,.tbl select,#strat').forEach(e=>e.oninput=()=>{const was=S.soc,wf=S.fuel;readInputs();if(S.soc!==was)soc=S.soc;if(S.fuel!==wf)fuel=S.fuel;run()});
+const FAC={super:{n:'Super-speciality hospital',s:'Super hospital',d:226,m:200,p:1,v:10},multi:{n:'Multi-speciality hospital',s:'Multi hospital',d:150,m:90,p:2,v:6},clinic:{n:'Normal clinic',s:'Normal clinic',d:90,m:25,p:3,v:3}};
+let MU=1;
+function applyFac(k){const f=FAC[k];Object.assign(BASE[0],f);Object.assign(C[0],{n:f.n,s:f.s,p:f.p,v:f.v,d:r0(f.d*MU),m:r0(f.m*MU),crit:false,red:0,shed:false});
+  $('#nm_0').textContent=f.n;pie.data.labels[0]=f.n;bar.data.labels[0]=f.n;$$('[data-fc]').forEach(e=>e.classList.toggle('on',e.dataset.fc==k));writeInputs();run()}
+$$('[data-s]').forEach(b=>b.onclick=()=>{const sc=SCN[b.dataset.s];FS=false;MU=sc.mult||1;S={...SUP,...(sc.s||{})};SOLARDAY=S.solar;C=fresh(MU);soc=S.soc;fuel=S.fuel;writeInputs();setSolarGate();run()});
+$('#rst').onclick=()=>{FS=false;MU=1;S={...SUP};SOLARDAY=S.solar;C=fresh();soc=S.soc;fuel=S.fuel;SIMT=null;SIMON=false;strat='priority';applyFac('super')};
+/* solar follows the sun: 0 kW from 18:00 to 05:59, rises after sunrise, peaks at noon */
+let lastNight=null;
+$('#sim_play').onclick=()=>{if(SIMT==null)SIMT=curF();SIMON=!SIMON;run()};
+$('#sim_live').onclick=()=>{SIMT=null;SIMON=false;setSolarGate();run()};
+$('#sim_spd').onchange=e=>{SPEED=+e.target.value};
+$('#sim_t').oninput=e=>{SIMT=(SIMT==null?0:Math.floor(SIMT/24)*24)+(+e.target.value);SIMON=false;setSolarGate();run()};
+$('#refuel').onclick=()=>{fuel=S.tank;run()};
+function setSolarGate(){
+  S.solar=solNow();const el=$('#s_solar');
+  el.disabled=true;el.value=S.solar;el.title='Solar follows the sun: 0 kW at night, rising after sunrise (06:00), highest at noon, back to 0 at sunset (18:00)';
+  lastNight=isNight(curHr());
+}
+$$('[data-fcb]').forEach(b=>b.onclick=()=>{applyFac(b.dataset.fcb);show('System')});
+
+/* ---- core: share limited supply between consumers ---- */
+const eff=L=>L.map(c=>{const d=c.shed?0:c.d*(1-(c.red||0)/100)*DF();return{n:c.n,d,m:c.crit?d:Math.min(c.m,d),p:c.crit?0:c.p,v:c.v}});
+function alloc(mode,supply,L){
+  const a=L.map(()=>0),g1=a.slice(),g2=a.slice();
+  if(mode=='equal'){const t=sum(L.map(c=>c.d)),f=t?Math.min(1,supply/t):0;L.forEach((c,i)=>a[i]=c.d*f);return{a,g1,g2,f}}
+  const ord=L.map((_,i)=>i).sort((x,y)=>L[x].p-L[y].p||x-y);let rem=supply;
+  ord.forEach(i=>{g1[i]=Math.min(L[i].m,rem);rem-=g1[i]});            // pass 1: essential minimums by priority
+  const rem1=rem;
+  ord.forEach(i=>{g2[i]=Math.min(L[i].d-g1[i],rem);rem-=g2[i]});      // pass 2: rest of demand by priority
+  L.forEach((_,i)=>a[i]=g1[i]+g2[i]);return{a,g1,g2,rem1,ord};
+}
+function sim(mode,L,sv=S,sc=soc){
+  const batt=sc>20?sv.batt:0,ren=mode=='ren',supply=sv.solar+batt+(ren?0:sv.grid+GENEFF(sv));
+  const al=alloc(mode=='equal'?'equal':'priority',supply,L),a=al.a,del=sum(a),req=sum(L.map(c=>c.d));let rem=del;
+  const sol=Math.min(rem,sv.solar);rem-=sol;const bat=Math.min(rem,batt);rem-=bat;const gr=ren?0:Math.min(rem,sv.grid);rem-=gr;const ge=ren?0:Math.min(rem,GENEFF(sv));
+  return{al,a,del,req,supply,sol,bat,gr,ge,un:req-del,chg:sc<100?Math.min(sv.solar-sol,sv.batt):0,
+    cost:bat*PRICE.bat+gr*PRICE.grid+ge*PRICE.gen,harm:sum(L.map((c,i)=>(c.d-a[i])*c.v)),ren:del?(sol+bat)/del:1,
+    met:L.filter((c,i)=>c.m>0&&a[i]>=c.m-.01).length,nE:L.filter(c=>c.m>0).length};
+}
+/* ---- shortage forecast (simulated demand and solar for the next 6 hours) ---- */
+const prof=h=>.6+.4*Math.exp(-((h-19)**2)/10),sunf=h=>Math.max(0,Math.sin(((h%24)-6)/12*Math.PI));
+function forecast(){
+  const h0=curHr(),out=[],gE=GENEFF(S);let sc=soc;
+  for(let k=0;k<=6;k++){
+    const h=(h0+k)%24,dem=D.req*prof(h)/prof(h0),sol=k==0?S.solar:r0(S.peak*sunf(h)),batt=sc>20?S.batt:0,sup=sol+batt+S.grid+gE;
+    out.push({k,h,dem,sup,sol,soc:sc,un:Math.max(0,dem-sup)});
+    const need=Math.max(0,dem-sol-S.grid-gE),use=Math.min(batt,need),chg=sc<100?Math.min(Math.max(0,sol-dem),S.batt):0;
+    sc=clamp(sc+(chg-use)/capf()*100,0,100);
+  }
+  return out;
+}
+function calc(){
+  E=eff(C);D=sim(strat,E);A=D.a;
+  ALL={priority:sim('priority',E),equal:sim('equal',E),ren:sim('ren',E)};
+  BL=sim(strat,eff(C.map(c=>({...c,crit:false,red:0,shed:false}))));
+  FC=forecast();
+}
+
+/* ---- paint ---- */
+function wire(id,kw){const e=$('#'+id),f=clamp(kw/Math.max(D.del,1),0,1);e.style.opacity=kw>.5?.45+.55*f:.1;e.style.animationDuration=(2.2-1.5*f)+'s'}
+const sta=(a,c,sh)=>sh?['Manual shed','bad','#ef5350']:c.d<.5?['No demand','good','#3ddc84']:a<=.5?['Shed','bad','#ef5350']:a<c.d-.5?['Reduced','warn','#f59e0b']:['Full','good','#3ddc84'];
+const hh=h=>String(h).padStart(2,'0')+':00';
+function paint(){
+  $('#kreq').textContent=r0(D.req);$('#kav').textContent=r0(D.supply);$('#kdel').textContent=r0(D.del);$('#kun').textContent=r0(D.un);
+  $('#kbal').textContent=D.supply>=D.req?`Reserve +${r0(D.supply-D.req)} kW`:`Short by ${r0(D.req-D.supply)} kW`;
+  $('#kpct').textContent=`${D.req?r0(D.del/D.req*100):100}% of demand met`;
+  $('#kes').textContent=`Essential loads met: ${D.met}/${D.nE}`;
+  $('#smode').textContent=MODES[strat];
+  const now=[];
+  C.forEach((c,i)=>{
+    const e=E[i],a=A[i],[t,cls,col]=sta(a,e,c.shed),below=e.m>0&&a<e.m-.01&&!c.shed;
+    $('#a_'+i).textContent=r0(a);{const pc=e.d?r0(a/e.d*100):100;$('#v_'+i).innerHTML=`${pc}%<div class="sb"><i style="width:${clamp(pc,0,100)}%;background:${col}"></i></div>`}
+    $('#t_'+i).innerHTML=`<span class="badge ${below?'bad':cls}">${below?'Below essential':t}</span>`;
+    $('#lN'+i).textContent=`${c.crit?'★':'P'+c.p} ${c.s||c.n}`;$('#lV'+i).textContent=`${r0(a)}/${r0(e.d)} kW`;
+    $('#br'+i).setAttribute('fill',col);wire('wL'+i,a);now.push(t);
+    if(prev.length&&prev[i]!==t)LOG.unshift({t:new Date().toLocaleTimeString(),e:`${c.n}: ${prev[i]} → ${t} (${r0(a)}/${r0(e.d)} kW)`});
+  });
+  if(!prev.length)C.forEach((c,i)=>LOG.push({t:new Date().toLocaleTimeString(),e:`${c.n}: ${now[i]} (${r0(A[i])}/${r0(E[i].d)} kW)`}));
+  prev=now;LOG.length=Math.min(LOG.length,40);
+  /* manual effect */
+  const man=C.some(c=>c.crit||c.red>0||c.shed),cr=C.map((c,i)=>c.crit?i:-1).filter(i=>i>=0);
+  $('#eff').innerHTML=man?`<b>Effect of your manual actions:</b> demand cut by ${r0(BL.req-D.req)} kW. Unserved demand <b>${r0(BL.un)} kW → ${r0(D.un)} kW</b> (${D.un<=BL.un?'−':'+'}${r0(Math.abs(BL.un-D.un))} kW). Essential loads met ${BL.met}/${BL.nE} → ${D.met}/${D.nE}.${cr.length?' Critical: '+cr.map(i=>`${C[i].n} ${r0(A[i])}/${r0(E[i].d)} kW`).join(', ')+'.':''}`
+   :'No manual actions yet. Mark a consumer <b>Critical</b>, <b>cut</b> its demand or <b>shed</b> a load and the effect on unserved demand shows here immediately.';
+  $('#soc').textContent=r0(soc)+'%';
+  paintExtra();
+  wire('wSol',D.sol+D.chg);wire('wD1',D.sol+D.chg);wire('wD2',D.sol+D.bat);wire('wA1',D.sol+D.bat);wire('wA2',D.del);
+  wire('wBU',A[0]+A[1]);wire('wBD',A[2]+A[3]+A[4]);wire('wGr',D.gr);wire('wGe',D.ge);
+  const dis=D.bat>0;$('#wBt').setAttribute('d',dis?'M420,340H390V226':'M390,226V340H420');wire('wBt',dis?D.bat:D.chg);
+  pie.data.datasets[0].data=[...A.map(r0),r0(D.un)];pie.update('none');
+  bar.data.datasets[0].data=E.map(c=>r0(c.d));bar.data.datasets[1].data=E.map(c=>r0(c.m));bar.data.datasets[2].data=A.map(r0);bar.update('none');
+  fc.data.labels=FC.map(f=>f.k?hh(f.h):'Now');fc.data.datasets[0].data=FC.map(f=>r0(f.dem));fc.data.datasets[1].data=FC.map(f=>r0(f.sup));fc.data.datasets[2].data=FC.map(f=>r0(f.un));fc.update('none');
+  banner();why();cost();
+}
+$('#fs').onclick=()=>{FS=true;const top=Math.min(...C.map(c=>c.p));C.forEach(c=>{c.crit=c.p==top;c.shed=c.p!=top;c.red=0});writeInputs();run()};
+const baseL=()=>C.map(c=>{const d=c.shed?0:c.d*(1-(c.red||0)/100);return{d,m:c.crit?d:Math.min(c.m,d)}});
+function paintSrc(){
+  const t=curF(),cap=capf(),usableB=Math.max(0,(soc-20)/100*cap),gMax=GENEFF(S),fuelK=Math.max(0,fuel-FRES*S.tank)*KWHL,night=isNight(curHr());
+  const H=S.peak*SOLH,sofar=t<=6?0:S.peak*SOLH/2*(1-Math.cos(Math.PI*(Math.min(t,18)-6)/12));
+  const BL2=baseL(),pk=sum(BL2.map(x=>x.d)),es=sum(BL2.map(x=>x.m));
+  const fh=h=>!isFinite(h)?'a long time':h>=48?(h/24).toFixed(1)+' days':h.toFixed(1)+' h';
+  const pbar=(p,c)=>`<div class="sb big"><i style="width:${clamp(p,0,100)}%;background:${c}"></i></div>`;
+  const tile=(ttl,big,p,col,l1,l2,st)=>`<div class="src"><span>${ttl}</span><b>${big}</b>${pbar(p,col)}<em>${l1}</em><em>${l2}</em><em class="st">${st}</em></div>`;
+  const T=[];
+  T.push(tile('☀ Solar',r0(S.solar)+' kW',S.peak?S.solar/S.peak*100:0,'#f5c542',`Rating ${r0(S.peak)} kW · sunrise 06:00 · sunset 18:00`,`Made so far today ${r0(sofar)} kWh of about ${r0(H)} kWh expected`,
+    night?'Off at night (0 kW). It starts again at sunrise and rises until noon.':D.chg>.5?`Surplus ${r0(D.chg)} kW is being stored in the battery.`:S.solar>0?'All solar power goes to the consumers.':'The sun is too low, solar is almost 0.'));
+  T.push(tile('🔋 Battery',r0(soc)+'%',soc,'#3ddc84',`Holds ${r0(soc/100*cap)} of ${r0(cap)} kWh · usable above the reserve: ${r0(usableB)} kWh`,`Power limit ${r0(S.batt)} kW`,
+    soc<=20?'Locked at the 20% safe reserve to protect the battery.':D.bat>.5?`Discharging ${r0(D.bat)} kW. Reaches the reserve in ${fh(usableB/D.bat)}.`:D.chg>.5?`Charging ${r0(D.chg)} kW from surplus solar. Full in ${fh((100-soc)/100*cap/D.chg)}.`:soc>=100?'Full. Extra solar cannot be stored.':'Idle, ready to help when supply falls short.'));
+  T.push(tile('⛽ Generator fuel',r0(fuel)+' L',fuel/S.tank*100,'#f59e42',`Fuel energy about ${r0(fuel*KWHL)} kWh (${KWHL} kWh per litre) · usable above the reserve: ${r0(fuelK)} kWh`,`Rated ${r0(S.gen)} kW · safe max ${r0(gMax)} kW (80%)`,
+    S.gen<=0?'No generator is set (0 kW).':gMax<=0?'Stopped: fuel has reached the 15% safe reserve. Press Refuel to restart.':D.ge>.5?`Running at ${r0(D.ge)} kW. Fuel lasts ${fh(fuelK/D.ge)} at this load.`:`On standby. At its safe max of ${r0(gMax)} kW the fuel would last ${fh(fuelK/gMax)}.`));
+  T.push(tile('🔌 Utility grid',r0(D.gr)+' kW',S.grid?D.gr/S.grid*100:0,'#27b4d6',`Limit ${r0(S.grid)} kW`,'Unlimited energy, limited by power',
+    S.grid<=0?'Outage: no grid power.':strat=='ren'?'Switched off by the Renewables only rule.':D.gr>.5?'Covering the shortage after solar and battery.':'Standby, not needed right now.'));
+  $('#srcgrid').innerHTML=T.join('');
+  const LM=[
+   [soc>20,'Battery reserve 20%',soc>20?'discharge is allowed':'locked now, battery protected'],
+   [soc<100,'Battery charge cap 100%',soc<100?`${r0(100-soc)}% of room left to store solar`:'full, extra solar is not stored'],
+   [D.bat<=S.batt+.5&&D.chg<=S.batt+.5,'Battery power limit',`at most ${r0(S.batt)} kW in or out`],
+   [S.gen<=0||D.ge<=gMax+.5,'Generator max 80% load',S.gen>0?`runs at most ${r0(gMax)} kW of its ${r0(S.gen)} kW rating`:'no generator set'],
+   [S.gen<=0||gMax>0,'Generator fuel reserve 15%',gMax>0?`${r0(fuelK/KWHL)} L usable before the reserve`:'stopped, refuel needed'],
+   [true,'Solar off at night',night?'off now (18:00–06:00)':'solar follows the sun'],
+   [!(S.grid>0&&D.gr>=S.grid-.5),'Grid within its limit',S.grid>0&&D.gr>=S.grid-.5?'the grid is at its limit':`${r0(D.gr)} of ${r0(S.grid)} kW used`]];
+  $('#lim').innerHTML=LM.map(k=>`<div class="${k[0]?'p':'f'}"><span class="ic">${k[0]?'✔':'!'}</span><span><b>${k[1]}</b><small>${k[2]}</small></span></div>`).join('');
+  const AVGP=Array.from({length:24},(_,h)=>prof(h)).reduce((a,b)=>a+b,0)/24,U=usableB+fuelK;
+  $('#aut').innerHTML=[['All loads',pk,pk*AVGP*24],['Essential loads only',es,es*24]].map(([n,p,e])=>{const dd=e-H;
+    const run=e<=0?'No load':dd<=0?'Indefinitely: solar covers the day':U<=0?'0 h: no stored energy':fh(U/dd*24);
+    return `<tr><td>${n}</td><td>${r0(p)} kW</td><td>${r0(e)} kWh</td><td>${r0(H)} kWh</td><td>${r0(U)} kWh</td><td><b>${run}</b></td></tr>`}).join('');
+  const Pn=S.batt+gMax,cov=pk?Math.min(100,Pn/pk*100):100;let sur=0;for(let x=0;x<24;x+=.25)sur+=Math.min(Math.max(0,S.peak*sunf(x)-pk*prof(x)),S.batt)*.25;
+  const room=Math.max(0,cap-soc/100*cap),add=Math.min(sur,room);
+  $('#aut_note').innerHTML=`<b>Sunrise recharge:</b> after sunrise solar rises above the demand and the surplus is stored. Today that surplus is about <b>${r0(sur)} kWh</b>, enough to add <b>${r0(add/cap*100)}%</b> to the battery (${r0(room)} kWh of room). <b>Without the grid</b> at night the sources can give at most ${r0(S.batt)} kW (battery) + ${r0(gMax)} kW (generator) = <b>${r0(Pn)} kW</b>, against an evening peak demand of ${r0(pk)} kW, so about ${r0(cov)}% can be met; the priority rule keeps the most important consumers on and ${Pn>=es?'there is enough power for all essential loads':'there is <b>not</b> enough power for all essential loads'}. Assumes the daily demand pattern of the simulator, essential loads running all day and night, and surplus solar being stored.`;
+  dayc.data.datasets[0].data=Array.from({length:24},(_,h)=>r0(S.peak*sunf(h)));dayc.data.datasets[1].data=Array.from({length:24},(_,h)=>r0(pk*prof(h)));
+  const hi=Math.floor(t);dayc.data.datasets[2].data=Array.from({length:24},(_,h)=>h==hi?r0(S.solar):null);dayc.update('none');
+  if(document.activeElement!==$('#sim_t'))$('#sim_t').value=t;
+  $('#sim_tl').textContent=(SIMT==null?'Live ':`Day ${Math.floor(SIMT/24)+1} `)+hm(t);$('#sim_play').textContent=SIMON?'⏸ Pause':'▶ Play day';
+  $('#sim_note').textContent=SIMT==null?'Showing the live clock. Press Play day to watch a full day: solar rises after sunrise, the surplus charges the battery, and at night the battery and then the generator take over. (On the live clock, storage changes at 36 times real speed so you can see it move.)':`Simulation ${SIMON?'running':'paused'}. Demand follows a typical daily pattern (60–100% of the values you set), solar follows the sun, and the battery and fuel change in real kWh.`;
+}
+function paintRel(){
+  const day=!isNight(curHr()),usable=Math.max(0,(soc-20)/100*capf()),ET=sum(E.map(e=>e.m));
+  const avail=S.solar+(soc>20?S.batt:0)+GENEFF(S),nsrc=[S.grid>0,S.peak>0,soc>20&&S.batt>0,GENEFF(S)>0].filter(Boolean).length,pct=D.req?D.del/D.req*100:100;
+  const K=[
+   [30,D.met==D.nE,'Essential loads fully powered',`${D.met} of ${D.nE} essential loads meet their minimum`],
+   [20,pct>=95,'At least 95% of demand served',`${r0(pct)}% served now`],
+   [15,soc>20&&(D.bat<=.5||usable/D.bat>=2),'Battery healthy with 2 h or more backup',soc<=20?'battery at reserve level':D.bat>.5?`${fxn(usable/D.bat,1)} h at current discharge`:'not discharging, '+r0(usable)+' kWh usable'],
+   [15,avail>=ET,'Survives loss of the grid',`without grid: ${r0(avail)} kW available vs ${r0(ET)} kW essential`],
+   [10,FC.every(f=>f.un<=.5),'No shortage forecast in 6 hours',FC.every(f=>f.un<=.5)?'forecast reserve is positive':'a shortage is forecast'],
+   [10,nsrc>=3,'At least 3 independent sources available',`${nsrc} of 4 sources available (solar, battery, grid, generator)`]];
+  const score=K.reduce((a,k)=>a+(k[1]?k[0]:0),0),col=score>=80?'#3ddc84':score>=50?'#f59e42':'#ef5350',lab=score>=80?'High reliability':score>=50?'Moderate reliability':'Low reliability';
+  $('#g_arc').style.strokeDashoffset=326.7*(1-score/100);$('#g_arc').style.stroke=col;$('#g_txt').textContent=score;$('#g_lbl').textContent=lab;$('#g_lbl').style.color=col;
+  $('#chk').innerHTML=K.map(k=>`<div class="${k[1]?'p':'f'}" title="Worth ${k[0]} points"><span class="ic">${k[1]?'✔':'✖'}</span><span><b>${k[2]}</b><small>${k[3]}</small></span></div>`).join('');
+  const M=[['Solar',D.sol,'#f5c542'],['Battery',D.bat,'#3ddc84'],['Grid',D.gr,'#27b4d6'],['Generator',D.ge,'#f59e42']],T=Math.max(D.del,.01);
+  $('#mix').innerHTML=M.map(m=>`<i style="width:${m[1]/T*100}%;background:${m[2]}" title="${m[0]}"></i>`).join('');
+  $('#mixl').innerHTML=M.map(m=>`<span><i style="background:${m[2]}"></i>${m[0]} ${r0(m[1])} kW (${r0(m[1]/T*100)}%)</span>`).join('');
+  $('#r_note').textContent=FS?'Fail-safe test is active: control communication is treated as lost, so only the highest-priority consumers stay powered and everything else is shed. Press Reset all to restore normal operation.':score>=80?'The microgrid is in good health.':'Each failed check above shows what to fix to raise the score. Try adding generator capacity, raising the battery charge, or lowering demand.';
+  $('#dn').textContent=day?'☀ Daytime, solar '+r0(S.solar)+' kW':'🌙 Night, solar off';
+}
+const fxn=(v,d)=>v.toFixed(d);
+function paintExtra(){
+  paintRel();paintSrc();
+  $('#kcons').textContent=C.length+' consumers';
+  const fx=(v,d=0)=>v.toFixed(d),usable=Math.max(0,(soc-20)/100*capf()),night=isNight(curHr());
+  /* energy flow explanation */
+  const ln=[],del=Math.max(D.del,.01);
+  ln.push(night?'<b>Solar:</b> off now because it is night (18:00–06:00), so it adds 0 kW. It restarts at sunrise (06:00).':S.peak<=0?'<b>Solar:</b> no solar rating is set, so solar adds nothing.':`<b>Solar:</b> the sun gives ${r0(S.solar)} kW now (${r0(S.solar/S.peak*100)}% of the ${r0(S.peak)} kW rating, ${curF()<12?'rising towards noon':'falling towards sunset'}). ${r0(D.sol)} kW goes straight to the consumers${D.chg>.5?` and ${r0(D.chg)} kW of the surplus is stored in the battery`:''}.`);
+  ln.push(soc<=20&&S.batt>0?`<b>Battery:</b> at ${r0(soc)}% it is at the 20% reserve, so it is locked and gives 0 kW. This protects battery life.`:D.bat>.5?`<b>Battery:</b> discharging ${r0(D.bat)} kW to cover the gap (charge ${r0(soc)}%).`:D.chg>.5?`<b>Battery:</b> charging at ${r0(D.chg)} kW from spare solar (charge ${r0(soc)}%).`:`<b>Battery:</b> idle at ${r0(soc)}%, ready to help when supply falls short.`);
+  ln.push(strat=='ren'?'<b>Grid and generator:</b> switched off by the Renewables only rule, so only solar and battery are used.':`<b>Grid:</b> ${S.grid<=0?'no power available (grid limit is 0 kW, like an outage)':D.gr>.5?`supplies ${r0(D.gr)} kW of its ${r0(S.grid)} kW limit`:'on standby, not needed right now'}. <b>Generator:</b> ${S.gen<=0?'not available (0 kW)':GENEFF(S)<=0?'stopped because the fuel is at the 15% safe reserve (refuel it)':D.ge>.5?`running at ${r0(D.ge)} kW (most expensive source)`:'on standby, not needed'}.`);
+  const sh=[],rd=[],fu=[];C.forEach((c,i)=>{const t=sta(A[i],E[i],c.shed)[0];(t=='Shed'||t=='Manual shed'?sh:t=='Reduced'?rd:fu).push(c.s||c.n)});
+  ln.push(`<b>AC bus:</b> receives ${r0(D.supply)} kW in total and delivers ${r0(D.del)} of ${r0(D.req)} kW demanded. `+(D.un>.5?`${r0(D.un)} kW cannot be served, so the lowest priorities are cut first. `:'Every consumer can be served. ')+(sh.length?`Breakers open (shed): <b>${sh.join(', ')}</b>. `:'')+(rd.length?`Reduced: <b>${rd.join(', ')}</b>. `:'')+(fu.length?`Fully served: ${fu.join(', ')}.`:''));
+  $('#flowtxt').innerHTML=ln.map(l=>`<p>${l}</p>`).join('');
+  /* resilience, cost, carbon */
+  const co2=D.gr*.82+D.ge*.70,av=D.sol*.82,sav=Math.max(0,ALL.equal.harm-ALL.priority.harm);
+  $('#i_kwh').textContent=fx(usable,0)+' kWh';
+  if(soc<=20){$('#i_bk').textContent='0 h';$('#i_bk2').textContent='reserve level reached'}
+  else if(D.bat>.5){const h=usable/D.bat;$('#i_bk').textContent=h>=24?'24+ h':fx(h,1)+' h';$('#i_bk2').textContent='at the current discharge of '+r0(D.bat)+' kW'}
+  else{$('#i_bk').textContent='Not in use';$('#i_bk2').textContent='battery is not discharging now'}
+  $('#i_ren').textContent=r0(D.ren*100)+'%';
+  $('#i_co2').textContent=fx(co2,0)+' kg/h';$('#i_av').textContent=fx(av,0)+' kg/h';
+  $('#i_cost').textContent='$'+fx(D.cost,1)+'/h';$('#i_sav').textContent='$'+r0(sav)+'/h';
+  $('#i_note').textContent=sav>0.5?`With these settings the priority rule saves about $${r0(sav)} of harm every hour compared with cutting everyone equally, by keeping the most critical consumers on.`:'Supply is enough, or both rules give the same result, so the sharing rule makes no difference right now. Try the Grid outage button to see it matter.';
+}
+function banner(){
+  const el=$('#alert'),bad=FC.find(f=>f.un>.5);
+  if(!bad){el.className='alert ok';el.innerHTML=`✔ <b>No shortage expected in the next 6 hours.</b> Smallest forecast reserve: ${r0(Math.min(...FC.map(f=>f.sup-f.dem)))} kW.`;return}
+  const w=FC.reduce((m,f)=>f.un>m.un?f:m,FC[0]),sc=D.req?w.dem/D.req:1,L2=E.map(c=>({...c,d:c.d*sc,m:c.m*sc})),al=alloc(strat=='equal'?'equal':'priority',w.sup,L2).a;
+  const cuts=L2.map((c,i)=>({n:c.n,x:c.d-al[i]})).filter(o=>o.x>.5).sort((a,b)=>b.x-a.x).map(o=>`${o.n} −${r0(o.x)} kW`).join(', ');
+  const lock=FC.find(f=>f.soc<=20&&S.batt>0);
+  el.className='alert '+(bad.k==0?'bad':'warn');
+  el.innerHTML=bad.k==0?`⚠ <b>Shortage now:</b> ${r0(bad.un)} kW short.`:`⚠ <b>Shortage expected at ${hh(bad.h)} (in ${bad.k} h):</b> about ${r0(w.un)} kW short at the worst hour (${hh(w.h)}).`
+   +(lock?` Battery falls below 20% around ${hh(lock.h)}.`:'')+(cuts?` Planned cuts: ${cuts}.`:'')+' <b>Act early:</b> reduce or shed a low-priority load now.';
+}
+function why(){
+  const al=D.al,L=[],par=[`solar ${isNight(curHr())?'0 (night, 18:00-06:00)':r0(S.solar)}`,`battery ${soc>20?r0(S.batt):'0 (locked, charge below 20%)'}`];
+  if(strat!='ren')par.push(`grid ${r0(S.grid)}`,`generator ${r0(GENEFF(S))}`);
+  L.push(`<b>Supply vs demand:</b> ${r0(D.supply)} kW available (${par.join(', ')} kW${strat=='ren'?'; this rule switches off grid and generator':''}) against ${r0(D.req)} kW demand, so ${D.un>.5?`<b>${r0(D.un)} kW cannot be served</b>`:'everyone can be served'}.`);
+  const man=[];C.forEach(c=>{if(c.crit)man.push(`${c.n} marked critical (served first, its full demand counts as essential)`);if(c.shed)man.push(`${c.n} shed manually`);else if(c.red>0)man.push(`${c.n} demand cut ${c.red}%`)});
+  if(man.length)L.push(`<b>Manual actions:</b> ${man.join('; ')}.`);
+  if(D.un<=.5)L.push('<b>Result:</b> supply covers all demand, so no load shedding is needed.');
+  else{
+    if(strat=='equal'){
+      L.push(`<b>Rule:</b> no priority, so every consumer is cut by the same ${r0((1-al.f)*100)}%.`);
+      const lo=E.map((c,i)=>c.m>0&&A[i]<c.m-.01?`${c.n} gets ${r0(A[i])} kW, below its essential ${r0(c.m)} kW`:'').filter(Boolean);
+      if(lo.length)L.push(`<b>Problem:</b> ${lo.join('; ')}. This is why priority matters.`);
+    }else{
+      const s1=al.ord.filter(i=>al.g1[i]>.5).map(i=>`${E[i].n} ${r0(al.g1[i])} kW`),short=al.ord.filter(i=>al.g1[i]<E[i].m-.01).map(i=>E[i].n);
+      L.push(`<b>Step 1, essentials first (by priority):</b> ${s1.join(', ')||'nothing'}.${short.length?` Supply ran out before every essential minimum was met, so ${short.join(', ')} got less than essential.`:''}`);
+      const s2=al.ord.filter(i=>al.g2[i]>.5).map(i=>`${E[i].n} +${r0(al.g2[i])} kW`);
+      L.push(`<b>Step 2, remaining ${r0(al.rem1)} kW by priority:</b> ${s2.join(', ')||'nothing was left'}.`);
+    }
+    const sh=E.map((c,i)=>A[i]<c.d-.5?`${c.n} gets ${r0(A[i])} of ${r0(c.d)} kW`:'').filter(Boolean);
+    L.push(`<b>Result:</b> ${sh.join('; ')}.${D.met==D.nE&&strat!='equal'?' Lowest priorities are cut first, so every essential load stays powered.':''}`);
+  }
+  $('#why').innerHTML='<ol>'+L.map(l=>`<li>${l}</li>`).join('')+'</ol>';
+}
+function cost(){
+  const tot=m=>ALL[m].cost+ALL[m].harm,best=Object.keys(MODES).reduce((a,b)=>tot(b)<tot(a)?b:a);
+  $('#cost').innerHTML='<tr><th>Strategy</th><th>Unserved</th><th>Essential met</th><th>Renewable</th><th>Cost $/h</th><th>Harm $/h</th></tr>'+Object.keys(MODES).map(m=>{const r=ALL[m];
+    return `<tr class="${m==strat?'sel':''}"><td>${MODES[m]}${m==best?' <span class="badge good">★ lowest total</span>':''}</td><td>${r0(r.un)} kW</td><td>${r.met}/${r.nE}</td><td>${r0(r.ren*100)}%</td><td>${r.cost.toFixed(1)}</td><td>${r0(r.harm)}</td></tr>`}).join('');
+}
+function run(){calc();paint()}
+
+/* ---- tabs ---- */
+const TABS=['System','Facility Priority','Sources','Load Meters','Shed Log','Reports'];
+const TBL=()=>({
+ 'Sources':[['Source','Available (kW)','Used (kW)'],[[isNight(curHr())?'Solar (off 18:00–06:00)':'Solar',isNight(curHr())?0:r0(S.solar),isNight(curHr())?0:r0(D.sol)],['Battery',soc>20?r0(S.batt):0,r0(D.bat)],['Utility grid',r0(S.grid),r0(D.gr)],['Generator',r0(GENEFF(S)),r0(D.ge)]]],
+ 'Load Meters':[['Consumer','Priority','Demand now (kW)','Gets (kW)','Served'],C.map((c,i)=>[c.n,c.crit?'Critical':c.p,r0(E[i].d),r0(A[i]),(E[i].d?r0(A[i]/E[i].d*100):100)+'%'])],
+ 'Shed Log':[['Time','Event'],LOG.map(l=>[l.t,l.e])],
+ 'Reports':[['Report','Period','Format'],[['Live power data and shed log','Last 60 seconds','CSV']]]});
+TABS.forEach((t,i)=>{const b=document.createElement('button');b.className='tab';b.setAttribute('role','tab');b.textContent=t;b.setAttribute('aria-selected',i==0);b.onclick=()=>show(t);$('.tabs').append(b)});
+function show(t){
+  $$('.tab').forEach(b=>b.setAttribute('aria-selected',b.textContent==t));
+  const own={'System':'#p-system','Facility Priority':'#p-fac'}[t];
+  ['#p-system','#p-fac','#p-other'].forEach(id=>$(id).classList.toggle('hide',id!=(own||'#p-other')));
+  if(own)return;
+  const [h,r]=TBL()[t];$('#ot').textContent=t;
+  $('#tb').innerHTML='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>'+r.map(row=>'<tr>'+row.map(c=>`<td>${c}</td>`).join('')+'</tr>').join('');
+  $('#ex').innerHTML=t=='Reports'?'<button class="pill" id="dl">Download CSV</button>':'';
+  if(t=='Reports')$('#dl').onclick=dlCSV;
+}
+function dlCSV(){
+  const d=rt.data,rows=[['Time',...d.datasets.map(s=>s.label)]];d.labels.forEach((l,i)=>rows.push([l,...d.datasets.map(s=>s.data[i])]));
+  rows.push([],['Shed log'],...LOG.map(l=>[l.t,'"'+l.e+'"']));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download='microgrid-data.csv';a.click();
+}
+
+/* ---- charts ---- */
+const pie=new Chart($('#pie'),{type:'doughnut',data:{labels:[...C.map(c=>c.n),'Unserved'],datasets:[{data:[1,1,1,1,1,1],backgroundColor:[...C.map(c=>c.c),'#33475b'],borderColor:'#0a1f31',borderWidth:2}]},
+ options:{cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10}},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.parsed} kW`}}}}});
+const bar=new Chart($('#bar'),{type:'bar',data:{labels:C.map(c=>c.n),datasets:[{label:'Demand',data:[],backgroundColor:'#4c5f6e',borderRadius:4},{label:'Essential minimum',data:[],backgroundColor:'#f59e42',borderRadius:4},{label:'Delivered',data:[],backgroundColor:'#3ddc84',borderRadius:4}]},
+ options:{scales:{y:{beginAtZero:true,grid:GRID,title:{display:true,text:'kW'}},x:{grid:{display:false}}},plugins:{legend:{position:'bottom'}}}});
+const fc=new Chart($('#fc'),{type:'bar',data:{labels:[],datasets:[{type:'line',label:'Forecast demand',data:[],borderColor:'#a78bfa',backgroundColor:'#a78bfa',borderWidth:2,tension:.3,order:1},{type:'line',label:'Forecast supply',data:[],borderColor:'#27b4d6',backgroundColor:'#27b4d6',borderWidth:2,tension:.3,order:1},{label:'Shortage',data:[],backgroundColor:'rgba(239,83,80,.75)',borderRadius:4,order:2}]},
+ options:{scales:{y:{beginAtZero:true,grid:GRID,title:{display:true,text:'kW'}},x:{grid:GRID}},plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+const RC={Demand:'#a78bfa',Supply:'#27b4d6',Delivered:'#3ddc84',Unserved:'#ef5350',SOC:'#f59e42'};
+const N=30,rt=new Chart($('#rt'),{type:'line',data:{labels:[],datasets:['Demand','Supply','Delivered','Unserved','SOC'].map(n=>({label:n=='SOC'?'Battery SOC (%)':n,key:n,data:[],borderColor:RC[n],backgroundColor:RC[n],borderWidth:2,pointRadius:0,tension:.3,yAxisID:n=='SOC'?'y1':'y',borderDash:n=='SOC'?[5,4]:[]}))},
+ options:{animation:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,grid:GRID,title:{display:true,text:'kW'}},y1:{position:'right',min:0,max:100,grid:{display:false},title:{display:true,text:'SOC %'}},x:{grid:GRID,ticks:{maxTicksLimit:8}}},plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+const dayc=new Chart($('#dayc'),{type:'line',data:{labels:Array.from({length:24},(_,h)=>hh(h)),datasets:[
+ {label:'Solar output (kW)',data:[],borderColor:'#f5c542',backgroundColor:'rgba(245,197,66,.18)',fill:true,borderWidth:2,pointRadius:0,tension:.35},
+ {label:'Demand (kW)',data:[],borderColor:'#a78bfa',backgroundColor:'#a78bfa',borderWidth:2,pointRadius:0,tension:.35},
+ {label:'Now',data:[],borderColor:'#ffffff',backgroundColor:'#ffffff',pointRadius:6,showLine:false}]},
+ options:{animation:false,interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,grid:GRID,title:{display:true,text:'kW'}},x:{grid:GRID,ticks:{maxTicksLimit:12}}},plugins:{legend:{position:'bottom',labels:{boxWidth:10}}}}});
+const j=v=>v*(1+(rnd()-.5)*.04);
+function tick(){
+  const dt=SIMT==null?.02:(SIMON?SPEED:0),n=dt>0?Math.max(1,Math.ceil(dt/.1)):0;
+  for(let i=0;i<n;i++){if(SIMT!=null)SIMT+=dt/n;setSolarGate();calc();{let ns=soc+(D.chg-D.bat)*(dt/n)/capf()*100;if(D.bat>D.chg&&soc>=20)ns=Math.max(ns,20);soc=clamp(ns,0,100);let nf=fuel-D.ge*(dt/n)/KWHL;if(fuel>FRES*S.tank)nf=Math.max(nf,FRES*S.tank);fuel=Math.max(0,nf)}}
+  setSolarGate();calc();
+  const ae=document.activeElement;if(ae!==$('#s_soc')){S.soc=r0(soc);$('#s_soc').value=S.soc}if(ae!==$('#s_fuel')){S.fuel=r0(fuel);$('#s_fuel').value=S.fuel}
+  const stamp=SIMT==null?new Date().toLocaleString():`Simulated day ${Math.floor(SIMT/24)+1}, ${hm(SIMT%24)}`,lab=SIMT==null?new Date().toLocaleTimeString():`D${Math.floor(SIMT/24)+1} ${hm(SIMT%24)}`;
+  const v={Demand:j(D.req),Supply:j(D.supply),Delivered:j(D.del),Unserved:D.un>.5?j(D.un):0,SOC:soc};
+  rt.data.labels.push(lab);rt.data.datasets.forEach(s=>s.data.push(+v[s.key].toFixed(1)));
+  if(rt.data.labels.length>N){rt.data.labels.shift();rt.data.datasets.forEach(s=>s.data.shift())}
+  rt.update('none');paint();{const sel=$('.tab[aria-selected="true"]');if(sel&&sel.textContent=='Sources')show('Sources')}$('#clock').textContent=stamp;$('#upd').textContent=stamp;
+  $('.live').textContent=SIMT==null?'Live':(SIMON?'Simulating':'Sim paused');
+}
+setSolarGate();for(let i=0;i<N;i++)tick();setInterval(tick,2000);
+</script>
+
+</body></html>
